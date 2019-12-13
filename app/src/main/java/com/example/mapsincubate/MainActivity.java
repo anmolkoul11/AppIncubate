@@ -26,13 +26,15 @@ import static com.example.mapsincubate.Constants.PERMISSIONS_REQUEST_ENABLE_GPS;
 
 public class MainActivity extends AppCompatActivity {
     private boolean mLocationP=false;
-    Button b1;
+    Button b1,b2,bs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         b1=(Button)findViewById(R.id.btn_1);
+        b2=(Button)findViewById(R.id.btn_2);
+        bs=(Button)findViewById(R.id.btn_s);
         b1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -45,6 +47,20 @@ public class MainActivity extends AppCompatActivity {
                         getLocationPermission();
                     }
                 }
+            }
+        });
+        b2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(MainActivity.this,ContactActivity.class);
+                startActivity(i);
+            }
+        });
+
+        bs.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
             }
         });
     }
@@ -162,6 +178,7 @@ public class MainActivity extends AppCompatActivity {
     }
 void getMaps(){
         Intent i=new Intent(MainActivity.this,MapsActivity.class);
+        startActivity(i);
 }
 
 
