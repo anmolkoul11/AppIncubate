@@ -1,5 +1,6 @@
 package com.example.mapsincubate;
 
+import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -52,6 +53,8 @@ public class ContactActivity extends AppCompatActivity {
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        toolbar.setTitle("Contacts");
+
 
         db = new database(getApplicationContext());
 //
