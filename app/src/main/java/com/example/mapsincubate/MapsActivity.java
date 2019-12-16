@@ -1,9 +1,11 @@
 package com.example.mapsincubate;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationListener;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -25,7 +27,11 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, LocationListener {
+
+    public MapsActivity(Context context){
+
+    }
 
     private GoogleMap mMap;
     FusedLocationProviderClient mFusedLocation;
@@ -44,6 +50,25 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
+    @Override
+    public void onLocationChanged(Location location) {
+
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+
+    }
 
     /**
      * Manipulates the map once available.
@@ -86,16 +111,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
             }
         });
-//        b1.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                Intent i = new Intent(Intent.ACTION_SEND);
-//                String data = getResources().getString();
-//                Intent chooser= Intent.createChooser(i,data);
-//                if(i.resolveActivity(getPackageManager())!=null){
-//                    startActivity(chooser);
-//                }
-//            }
-//        });
+
+
+    }
+
+    public Location Loccall(){
+        final Location[] l = new Location[1];
+        mFusedLocation= LocationServices.getFusedLocationProviderClient(getApplicationContext());
+        mFusedLocation.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
+            @Override
+            public void onSuccess(Location location) {
+                l[0] =location;
+            }
+        });
+        return l[0];
     }
 }

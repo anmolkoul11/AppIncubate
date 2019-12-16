@@ -154,10 +154,11 @@ public class ContactActivity extends AppCompatActivity {
             dialog.show();
         }
         if(title.equals("Feedback")){
-            Toast.makeText(ContactActivity.this,"Call Submenu-3",Toast.LENGTH_SHORT).show();
+            Toast.makeText(ContactActivity.this,"Call Feedback Fragment",Toast.LENGTH_SHORT).show();
         }
         if(title.equals("Close")){
-            Toast.makeText(ContactActivity.this,"Call Submenu-4",Toast.LENGTH_SHORT).show();
+            Intent i = new Intent(ContactActivity.this,MainActivity.class);
+            startActivity(i);
         }
         // if(id==R.id.m4){
         //    Toast.makeText(MainActivity.this,"Call menu-4",Toast.LENGTH_SHORT).show();

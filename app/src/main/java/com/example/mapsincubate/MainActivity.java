@@ -1,24 +1,31 @@
 package com.example.mapsincubate;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import android.Manifest;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.telephony.SmsManager;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.android.gms.maps.model.LatLng;
 
 import static com.example.mapsincubate.Constants.ERROR_DIALOG_REQUEST;
 import static com.example.mapsincubate.Constants.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
@@ -26,7 +33,12 @@ import static com.example.mapsincubate.Constants.PERMISSIONS_REQUEST_ENABLE_GPS;
 
 public class MainActivity extends AppCompatActivity {
     private boolean mLocationP=false;
-    Button b1,b2,bs;
+    Button b1,b2,bs,bf;
+    database db;
+    ActionBar ab;
+    ProgressBar progressBar;
+    int status=0;
+    MapsActivity mp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +47,12 @@ public class MainActivity extends AppCompatActivity {
         b1=(Button)findViewById(R.id.btn_1);
         b2=(Button)findViewById(R.id.btn_2);
         bs=(Button)findViewById(R.id.btn_s);
+        bf=(Button)findViewById(R.id.btn_f);
+        ab=getSupportActionBar();
+        ab.hide();
+
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.SEND_SMS, Manifest.permission.READ_SMS, Manifest.permission.READ_PHONE_STATE}, PackageManager.PERMISSION_GRANTED);
+
         b1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -57,12 +75,52 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
+        db = new database(MainActivity.this);
+        try {
+            final Cursor record = db.get_record();
+
+
+
         bs.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    record.moveToFirst();
+                    while (record.moveToNext()) {
+                        String ph = record.getString(2);
+                        SmsManager smsManager = SmsManager.getDefault();
+                        smsManager.sendTextMessage(ph, null, "Hi", null, null);
+
+//                        smsManager.sendTextMessage(ph, null, "My Location is \n http://maps.google.com/?q=", null, null);
+//                smsManager.sendTextMessage("9461937350", null, "My Location is \n http://maps.google.com/?q="+lat+","+lon, null, null);
+//                        status++;
+//                        progressBar.setProgress(status);
+//                        Thread th = new Thread();
+//                        try {
+//                            th.sleep(4000);
+//                        } catch (InterruptedException e) {
+//                            e.printStackTrace();
+//                        }
+//                        th.start();
+                    }
+
+                    Toast.makeText(MainActivity.this, "Message Sent", Toast.LENGTH_SHORT).show();
+
+                }
+            });
+
+        }catch(Exception ty){
+            Toast.makeText(MainActivity.this,"Error"+ty,Toast.LENGTH_LONG).show();
+        }
+        mp=new MapsActivity(MainActivity.this);
+        bf.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                Location location=mp.Loccall();
+                Toast.makeText(MainActivity.this,"Lat"+location.getLatitude()+",Lon"+location.getLongitude(),Toast.LENGTH_LONG).show();
             }
         });
+
     }
     private boolean checkMapServices(){
         if(isServicesOK()){
