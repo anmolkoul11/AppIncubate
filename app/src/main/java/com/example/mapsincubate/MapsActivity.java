@@ -15,7 +15,11 @@ import androidx.fragment.app.FragmentActivity;
 
 
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResponse;
+import com.google.android.gms.location.SettingsClient;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -26,49 +30,35 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, LocationListener {
+import java.util.Map;
 
-    public MapsActivity(Context context){
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback{
 
-    }
 
-    private GoogleMap mMap;
+     GoogleMap mMap;
     FusedLocationProviderClient mFusedLocation;
-    Button b1;
+
+    int signal=0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-        b1=(Button)findViewById(R.id.b_m1);
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
        final SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
+        assert mapFragment != null;
         mapFragment.getMapAsync(this);
+       signal= getIntent().getIntExtra("s",0);
+
+
 
 
     }
 
-    @Override
-    public void onLocationChanged(Location location) {
-
-    }
-
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
-
-    }
-
-    @Override
-    public void onProviderEnabled(String provider) {
-
-    }
-
-    @Override
-    public void onProviderDisabled(String provider) {
-
-    }
 
     /**
      * Manipulates the map once available.
@@ -100,6 +90,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         mMap.setMyLocationEnabled(true);
         mFusedLocation= LocationServices.getFusedLocationProviderClient(this);
+        LocationRequest request = LocationRequest.create();
+        request.setInterval(1000);
+        request.setFastestInterval(500);
+        request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        LocationSettingsRequest.Builder builder=new LocationSettingsRequest.Builder().addLocationRequest(request);
+        SettingsClient client=LocationServices.getSettingsClient(this);
+        Task<LocationSettingsResponse> task = client.checkLocationSettings(builder.build());
         mFusedLocation.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
             @Override
             public void onSuccess(Location location) {
@@ -108,6 +105,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     LatLng loc= new LatLng(current.getLatitude(),current.getLongitude());
                     mMap.moveCamera(CameraUpdateFactory.newLatLng(loc));
                     mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(loc, 15));
+                    if(signal==1){
+                        Intent i2 = new Intent(MapsActivity.this,MainActivity.class);
+                        i2.putExtra("loc",current);
+                        startActivity(i2);
+                    }
                 }
             }
         });
@@ -115,15 +117,5 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
-    public Location Loccall(){
-        final Location[] l = new Location[1];
-        mFusedLocation= LocationServices.getFusedLocationProviderClient(getApplicationContext());
-        mFusedLocation.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
-            @Override
-            public void onSuccess(Location location) {
-                l[0] =location;
-            }
-        });
-        return l[0];
-    }
+
 }

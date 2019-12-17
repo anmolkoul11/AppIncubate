@@ -32,7 +32,7 @@ import java.util.List;
 
 public class ContactActivity extends AppCompatActivity {
     static final int PICK_CONTACT=1;
-    database mydb,db;
+    database db;
     ListView l;
     ArrayList<String>m,n;
     int tap=0;
@@ -63,15 +63,10 @@ public class ContactActivity extends AppCompatActivity {
         try {
             Cursor record = db.get_record();
             if (record.getCount() == 0) {
-                Toast.makeText(this, "Record not found", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "No Contacts", Toast.LENGTH_SHORT).show();
             }
 
 
-            gl=null;
-//                                l.setAdapter(null);
-            n=new ArrayList<>();
-            m=new ArrayList<>();
-            record.moveToFirst();
 
 
 
@@ -98,8 +93,8 @@ public class ContactActivity extends AppCompatActivity {
     public boolean  onCreateOptionsMenu(Menu menu) {
         menu.add("Add Contact");
         menu.add("Remove All Contacts");
-        menu.add("Feedback");
         menu.add("Close");
+
 
 
         // getMenuInflater().inflate(R.menu.mymenu, menu);
@@ -130,7 +125,7 @@ public class ContactActivity extends AppCompatActivity {
                     builder.setCancelable(true);
                     try{
 
-                        mydb.del_record_all();
+                        db.del_record_all();
                         Toast.makeText(ContactActivity.this,"Deleted",Toast.LENGTH_SHORT).show();
                         n=new ArrayList<>();
                         m=new ArrayList<>();
@@ -153,9 +148,7 @@ public class ContactActivity extends AppCompatActivity {
             AlertDialog dialog=builder.create();
             dialog.show();
         }
-        if(title.equals("Feedback")){
-            Toast.makeText(ContactActivity.this,"Call Feedback Fragment",Toast.LENGTH_SHORT).show();
-        }
+
         if(title.equals("Close")){
             Intent i = new Intent(ContactActivity.this,MainActivity.class);
             startActivity(i);
@@ -184,15 +177,15 @@ public class ContactActivity extends AppCompatActivity {
                         phoneNo = cursor.getString(phoneIndex);
                         int  phoneName =cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME);
                         name=cursor.getString(phoneName);
-                        Toast.makeText(ContactActivity.this,"Name "+name+"\nPhone "+phoneNo,Toast.LENGTH_LONG).show();
+                        Toast.makeText(ContactActivity.this,"Name "+name+"\nPhone "+phoneNo,Toast.LENGTH_SHORT).show();
                         nm=name;
                         mb=phoneNo;
 
-                        mydb = new database(ContactActivity.this);
+//                        db = new database(ContactActivity.this);
                         try {
 
 
-                            mydb.add_record(nm,mb);
+                            db.add_record(nm,mb);
                             Toast.makeText(ContactActivity.this,"Entry Successful",Toast.LENGTH_SHORT).show();
                         }catch(Exception t){
                             Toast.makeText(ContactActivity.this,"Error"+t,Toast.LENGTH_SHORT).show();
@@ -205,7 +198,7 @@ public class ContactActivity extends AppCompatActivity {
                         try {
                             Cursor record = db.get_record();
                             if (record.getCount() == 0) {
-                                Toast.makeText(this, "Record not found", Toast.LENGTH_LONG).show();
+                                Toast.makeText(this, "Record not found", Toast.LENGTH_SHORT).show();
                             }
 
 
@@ -213,7 +206,7 @@ public class ContactActivity extends AppCompatActivity {
 //                                l.setAdapter(null);
                                 n=new ArrayList<>();
                                 m=new ArrayList<>();
-                                record.moveToFirst();
+
 
 
 

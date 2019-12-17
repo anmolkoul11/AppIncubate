@@ -8,6 +8,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -15,6 +16,10 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.location.Location;
+
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.telephony.SmsManager;
@@ -25,7 +30,14 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
-import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.location.FusedLocationProviderClient;
+
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResponse;
+import com.google.android.gms.location.SettingsClient;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+
 
 import static com.example.mapsincubate.Constants.ERROR_DIALOG_REQUEST;
 import static com.example.mapsincubate.Constants.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
@@ -36,9 +48,11 @@ public class MainActivity extends AppCompatActivity {
     Button b1,b2,bs,bf;
     database db;
     ActionBar ab;
-    ProgressBar progressBar;
+
     int status=0;
-    MapsActivity mp;
+    Location l;
+    double Lat,Lng;
+    FusedLocationProviderClient fusedLocationClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,18 +65,55 @@ public class MainActivity extends AppCompatActivity {
         ab=getSupportActionBar();
         ab.hide();
 
-        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.SEND_SMS, Manifest.permission.READ_SMS, Manifest.permission.READ_PHONE_STATE}, PackageManager.PERMISSION_GRANTED);
+
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.SEND_SMS, Manifest.permission.READ_SMS, Manifest.permission.READ_PHONE_STATE,Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION}, PackageManager.PERMISSION_GRANTED);
+        checkMapServices();
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        LocationRequest request = LocationRequest.create();
+        request.setInterval(1000);
+        request.setFastestInterval(500);
+        request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        LocationSettingsRequest.Builder builder=new LocationSettingsRequest.Builder().addLocationRequest(request);
+        SettingsClient client=LocationServices.getSettingsClient(this);
+        Task<LocationSettingsResponse> task = client.checkLocationSettings(builder.build());
+        if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
+                android.Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            fusedLocationClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                @Override
+                public void onSuccess(Location location) {
+
+                    if(location==null){
+                        checkMapServices();
+                        fusedLocationClient = new FusedLocationProviderClient(MainActivity.this);
+                        fusedLocationClient.getLastLocation();
+                    }
+                    else {
+                        try {
+
+                            levi(location);
+
+
+                        } catch (Exception ty) {
+                            Toast.makeText(MainActivity.this, "Error " + ty, Toast.LENGTH_LONG).show();
+                        }
+                    }
+
+                }
+            });
+
+        }
 
         b1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if(checkMapServices()){
                     if(mLocationP){
-                        Intent i = new Intent(MainActivity.this,MapsActivity.class);
-                        startActivity(i);
+                        getMaps();
                     }
                     else{
                         getLocationPermission();
+                        getMaps();
                     }
                 }
             }
@@ -85,13 +136,17 @@ public class MainActivity extends AppCompatActivity {
         bs.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    if(Lat==0 && Lng ==0){
+                        Toast.makeText(MainActivity.this,"Location not fetched.Fetch Location and Restart App ",Toast.LENGTH_LONG).show();
+                    }
+                    else{
                     record.moveToFirst();
                     while (record.moveToNext()) {
                         String ph = record.getString(2);
                         SmsManager smsManager = SmsManager.getDefault();
-                        smsManager.sendTextMessage(ph, null, "Hi", null, null);
 
-//                        smsManager.sendTextMessage(ph, null, "My Location is \n http://maps.google.com/?q=", null, null);
+
+                        smsManager.sendTextMessage(ph, null, "My Location is \n http://maps.google.com/?q="+Lat+","+Lng, null, null);
 //                smsManager.sendTextMessage("9461937350", null, "My Location is \n http://maps.google.com/?q="+lat+","+lon, null, null);
 //                        status++;
 //                        progressBar.setProgress(status);
@@ -107,21 +162,42 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(MainActivity.this, "Message Sent", Toast.LENGTH_SHORT).show();
 
                 }
+                    }
             });
 
         }catch(Exception ty){
-            Toast.makeText(MainActivity.this,"Error"+ty,Toast.LENGTH_LONG).show();
+            Toast.makeText(MainActivity.this,"Error"+ty,Toast.LENGTH_SHORT).show();
         }
-        mp=new MapsActivity(MainActivity.this);
+
         bf.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Location location=mp.Loccall();
-                Toast.makeText(MainActivity.this,"Lat"+location.getLatitude()+",Lon"+location.getLongitude(),Toast.LENGTH_LONG).show();
+                if(Lat==0&&Lng==0){
+
+                    Toast.makeText(MainActivity.this,"Fetching Location",Toast.LENGTH_SHORT).show();
+                    Intent i = new Intent(MainActivity.this,MapsActivity.class);
+                    i.putExtra("s",1);
+                    startActivity(i);
+
+
+
+                }
+                else{
+                Toast.makeText(MainActivity.this,"Location Fetched \nLat "+Lat+",Lon "+Lng,Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
     }
+
+    public void levi(Location location) {
+        l=location;
+        Lat=l.getLatitude();
+        Lng=l.getLongitude();
+    }
+
+
+
     private boolean checkMapServices(){
         if(isServicesOK()){
             if(isMapsEnabled()){
@@ -173,7 +249,6 @@ public class MainActivity extends AppCompatActivity {
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             mLocationP = true;
-            getMaps();
         } else {
             ActivityCompat.requestPermissions(this,
                     new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
@@ -225,7 +300,7 @@ public class MainActivity extends AppCompatActivity {
         switch (requestCode) {
             case PERMISSIONS_REQUEST_ENABLE_GPS: {
                 if(mLocationP){
-                    getMaps();
+
                 }
                 else{
                     getLocationPermission();
